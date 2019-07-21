@@ -39,6 +39,7 @@ export const actions={
     
     })
   },
+  // 获取验证码
   sendCode(store,phoneNumber){
     return this.$axios({
       url:"/captchas",

@@ -101,9 +101,8 @@ export default {
         { icon: "iconfont iconshuangxiang", name: "往返" }
       ],
       currentTab: 0,
-      rules: {
-
-      }
+      rules: {},
+     
     }
   },
   methods: {
@@ -114,9 +113,30 @@ export default {
       }
     },
     querySearchDepartCity(queryString, cb) {
-      //  如果是空，就不发器请求和下拉框
+      this.querySearchCity(queryString).then(res=>{
+           if(res.length>0){
+              this.searchForm.departCity = res[0].value;
+                this.searchForm.departCity = res[0].sort;
+           }
+           cb(res)
+     })
+     
+      
+    },
+    querySearchDestCity(queryString,cb) {
+     this.querySearchCity(queryString).then(res=>{
+           if(res.length>0){
+              this.searchForm.destCity = res[0].value;
+                this.searchForm.destCode = res[0].sort;
+           }
+           cb(res)
+     })
+    },
+    querySearchCity(queryString){
+       //  如果是空，就不发器请求和下拉框
+       return new Promise((resolve,reject)=>{
       if (!queryString.trim()) {
-        cb([])
+        resolve([])
 
       }
       this.$axios({
@@ -133,38 +153,13 @@ export default {
             value: v.name.replace("市", "")
           }
         })
-        this.searchForm.departCity = newData[0].name;
-        this.searchForm.departCode = newData[0].sort;
-        cb(newData)
+        resolve(newData)
+        // cb(newData)
       }
       )
+             })
     },
-    querySearchDestCity(queryString, cb) {
-      //  如果是空，就不发器请求和下拉框
-      if (!queryString.trim()) {
-        cb([])
 
-      }
-      this.$axios({
-        url: '/airs/city',
-        method: "GET",
-        params: { name: queryString }
-      }).then(res => {
-        // console.log(res);
-        // 解构获得真正的数据
-        const { data } = res.data
-        const newData = data.map(v => {
-          return {
-            ...v,
-            value: v.name.replace("市", "")
-          }
-        })
-        this.searchForm.destCity = newData[0].name;
-        this.searchForm.destCode = newData[0].sort;
-        cb(newData)
-      }
-      )
-    },
     handleSelectDepartCity(item) {
       // console.log(item);
 
@@ -177,7 +172,7 @@ export default {
       this.searchForm.destCode = item.sort
     },
     handleDate(value) {
-      console.log(value);
+      // console.log(value);
       this.searchForm.departDate = moment(value).format("YYYY-MM-DD")
 
     },
@@ -213,6 +208,16 @@ export default {
           query: this.searchForm
         })
       }
+      // 添加记录到本地储存
+      
+      const airs=JSON.parse(localStorage.getItem("airs") ||`[]`)
+      
+      airs.unshift(this.searchForm)
+          if(airs.length>5){
+            airs.length=5
+          }
+      localStorage.setItem("airs",JSON.stringify(airs));
+      // 
     },
 
     handleReverse() {
